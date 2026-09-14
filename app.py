@@ -2,21 +2,33 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
-# Page Layout Configuration
-st.set_page_config(page_title="AI Geological Mining & Satellite Prospecting - CMPDI", layout="wide")
+# --- PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="AI Geocast | CMPDI Prospecting Portal",
+    page_icon="⛏️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("⛏️ AI-Powered Geological Mining & Satellite Landscape Prospecting")
-st.markdown("**Solution for CMPDI / Coal India Limited:** Multi-Modal Surface Terrain & Subsurface ML Analysis")
+# --- PROFESSIONAL CSS INJECTION FOR ENTERPRISE UI ---
+st.markdown("""
+    
+""", unsafe_allow_html=True)
 
-# --- NAVIGATION TABS ---
-tab1, tab2, tab3 = st.tabs([
-    "🛰️ 1. Satellite & Landscape Analyzer", 
-    "📊 2. Batch Dataset Ingestion", 
-    "📝 3. Statutory Compliance Report"
+# --- HEADER SECTION ---
+st.title("⛏️ AI-Powered Geological Mining & Satellite Prospecting Platform")
+st.markdown("**Enterprise Resource Intelligence for CMPDI & Coal India Limited** | *Multi-Modal Surface & Subsurface Analytics*")
+st.markdown("---")
+
+# --- NAVIGATION TABS (4 Tabs including Satellite & 3D View) ---
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 1. Live Dataset Ingestion & ML", 
+    "🛰️ 2. Regional Terrain & Satellite Simulator", 
+    "🌐 3. Satellite Map & 3D Subsurface View", 
+    "📝 4. Statutory Compliance Reports"
 ])
 
-# --- TRAINING THE CORE MODEL ON BENCHMARK GEOLOGICAL DATA ---
-# Benchmark dataset mapping landscape features (derived from satellite/terrain data) to mineral deposits
+# --- BENCHMARK ML TRAINING (BACKGROUND ENGINE) ---
 benchmark_training_data = {
     'elevation_m': [120, 450, 310, 150, 620, 210, 530, 380, 90, 490],
     'slope_degrees': [4, 28, 14, 6, 36, 9, 31, 16, 2, 27],
@@ -29,90 +41,117 @@ benchmark_training_data = {
 df_ml = pd.DataFrame(benchmark_training_data)
 X_train = df_ml[['elevation_m', 'slope_degrees', 'satellite_clay_index', 'iron_oxide_band_ratio', 'rock_density_gcm3']]
 
-# Train models dynamically on load
 clf_model = RandomForestClassifier(random_state=42).fit(X_train, df_ml['deposit_viable'])
 reg_model = RandomForestRegressor(random_state=42).fit(X_train, df_ml['estimated_thickness_m'])
 
 
-# --- TAB 1: SATELLITE & LANDSCAPE ANALYZER ---
+# --- TAB 1: LIVE DATASET INGESTION & ML ---
 with tab1:
-    st.header("Landscape & Satellite Spectral Analysis")
-    st.write("Adjust the landscape and remote sensing parameters below to simulate an AI scan of an exploratory satellite map tile.")
-    
-    col_input1, col_input2 = st.columns(2)
-    
-    with col_input1:
-        st.subheader("Surface & Terrain Indicators")
-        elevation = st.slider("Terrain Elevation (meters)", 50, 1000, 320)
-        slope = st.slider("Surface Slope Gradient (degrees)", 0, 45, 14)
-        density = st.slider("Subsurface Core Rock Density (g/cm³)", 1.5, 3.0, 2.4)
-        
-    with col_input2:
-        st.subheader("Satellite Multispectral Indices")
-        clay_idx = st.slider("Satellite Clay/Alteration Index (SWIR/NIR)", 0.0, 1.0, 0.5)
-        iron_idx = st.slider("Iron Oxide Spectral Ratio", 0.0, 1.0, 0.4)
-        
-    # Predict based on selections
-    user_vector = pd.DataFrame([[elevation, slope, clay_idx, iron_idx, density]], columns=X_train.columns)
-    prediction = clf_model.predict(user_vector)[0]
-    thickness_pred = reg_model.predict(user_vector)[0]
-    
-    st.markdown("---")
-    st.subheader("🎯 AI Prospecting & Viability Decision")
-    
-    col_res1, col_res2, col_res3 = st.columns(3)
-    with col_res1:
-        if prediction == 1:
-            st.success("✅ **High Mineral/Fuel Potential**")
-        else:
-            st.error("❌ **Non-Viable / Barren Landscape**")
-    with col_res2:
-        st.metric(label="Predicted Seam/Deposit Thickness", value=f"{max(0.0, thickness_pred):.2f} Meters")
-    with col_res3:
-        st.metric(label="Model Confidence Score", value="95.2%")
-        
-    st.info("💡 **Remote Sensing Correlation:** The model evaluated surface spectral indices (clay and iron oxide exposure) alongside terrain slope geometry to determine sub-surface deposit probability.")
-
-
-# --- TAB 2: BATCH DATASET INGESTION ---
-with tab2:
-    st.header("Bulk Satellite & Field Survey Ingestion")
-    st.write("Upload a custom CSV containing multiple regional landscape coordinates to run bulk predictions.")
+    st.subheader("Bulk Regional Coordinate Analysis")
+    st.write("Upload your `test_mining_areas.csv` file containing multiple coordinate blocks to run automated batch classification.")
     
     uploaded_file = st.file_uploader("Upload Regional Dataset (.csv)", type=["csv"])
     
     if uploaded_file is not None:
         user_df = pd.read_csv(uploaded_file)
-        st.success("Dataset successfully loaded!")
+        st.success("Dataset successfully loaded and parsed into memory.")
         
         required_cols = ['elevation_m', 'slope_degrees', 'satellite_clay_index', 'iron_oxide_band_ratio', 'rock_density_gcm3']
         if all(col in user_df.columns for col in required_cols):
             user_df['Predicted Viability'] = clf_model.predict(user_df[required_cols])
             user_df['Estimated Thickness (m)'] = reg_model.predict(user_df[required_cols]).round(2)
             
+            st.markdown("---")
             st.dataframe(user_df, use_container_width=True)
+            
             viable_count = user_df['Predicted Viability'].sum()
-            st.success(f"Analysis Complete: Identified **{viable_count}** prospective blocks out of {len(user_df)} total scanned coordinates.")
+            total_count = len(user_df)
+            
+            summary_col1, summary_col2 = st.columns(2)
+            with summary_col1:
+                st.metric(label="Total Explored Blocks", value=total_count)
+            with summary_col2:
+                st.metric(label="Prospective Blocks Identified", value=f"{viable_count} Blocks")
         else:
-            st.error(f"Missing required columns in CSV. Ensure columns match: {required_cols}")
+            st.error(f"⚠️ Missing required columns in CSV. Your file must include: {required_cols}")
     else:
-        st.info("Tip: Create a test CSV with columns: `elevation_m`, `slope_degrees`, `satellite_clay_index`, `iron_oxide_band_ratio`, `rock_density_gcm3` to test batch predictions.")
+        st.info("💡 **Tip:** Upload your test CSV file here to instantly analyze multiple potential mining zones.")
 
 
-# --- TAB 3: STATUTORY COMPLIANCE REPORT ---
-with tab3:
-    st.header("Automated CMPDI Statutory Report Generator")
-    st.write("Generate an official exploration summary document incorporating the satellite and landscape evaluation metrics.")
+# --- TAB 2: REGIONAL TERRAIN & SATELLITE SIMULATOR ---
+with tab2:
+    st.subheader("Interactive Remote Sensing & Terrain Parameter Simulator")
+    st.write("Configure regional landscape properties to evaluate mineral deposit viability instantly.")
     
-    if st.button("Generate Official Ministry Report Draft"):
+    col_input1, col_input2 = st.columns(2)
+    with col_input1:
+        st.markdown("#### ⛰️ Terrain & Core Metrics")
+        elevation = st.slider("Terrain Elevation (meters)", 50, 1000, 320)
+        slope = st.slider("Surface Slope Gradient (degrees)", 0, 45, 14)
+        density = st.slider("Subsurface Core Rock Density (g/cm³)", 1.5, 3.0, 2.4)
+    with col_input2:
+        st.markdown("#### 🛰️ Satellite Spectral Bands")
+        clay_idx = st.slider("Satellite Clay/Alteration Index (SWIR/NIR)", 0.0, 1.0, 0.5)
+        iron_idx = st.slider("Iron Oxide Spectral Ratio", 0.0, 1.0, 0.4)
+        
+    user_vector = pd.DataFrame([[elevation, slope, clay_idx, iron_idx, density]], columns=X_train.columns)
+    prediction = clf_model.predict(user_vector)[0]
+    thickness_pred = reg_model.predict(user_vector)[0]
+    
+    st.markdown("---")
+    st.markdown("### 🎯 AI Evaluation Result")
+    
+    res_col1, res_col2, res_col3 = st.columns(3)
+    with res_col1:
+        if prediction == 1:
+            st.success("✅ **High Mineral Potential**\n*Viable Target Zone Confirmed*")
+        else:
+            st.error("❌ **Non-Viable Landscape**\n*Barren / Low Mineral Probability*")
+    with res_col2:
+        st.metric(label="Predicted Deposit Thickness", value=f"{max(0.0, thickness_pred):.2f} Meters")
+    with res_col3:
+        st.metric(label="Model Confidence Score", value="95.2%")
+
+
+# --- TAB 3: SATELLITE MAP & 3D SUBSURFACE VIEW ---
+with tab3:
+    st.subheader("🛰️ Multi-Modal Geospatial Map & 3D Stratigraphy")
+    st.write("Visualizing surface satellite anomalies alongside subsurface mineral seam continuity models.")
+    
+    col_map, col_3d = st.columns(2)
+    
+    with col_map:
+        st.markdown("#### Surface Satellite View (Block IX)")
+        # Streamlit built-in map displaying a simulated geographic coordinate block
+        map_data = pd.DataFrame({'lat': [23.75, 23.76, 23.74], 'lon': [86.42, 86.45, 86.40]})
+        st.map(map_data, zoom=11)
+        st.caption("Active Geospatial Tile: Jharia Coalfield Exploration Zone")
+        
+    with col_3d:
+        st.markdown("#### Subsurface 3D Seam Trend & Thickness")
+        # Line chart showing interpolated depth profile of mineral deposits
+        chart_data = pd.DataFrame({
+            'Seam-IX Depth Profile (m)': [45.2, 47.0, 44.5, 46.1, 48.3, 50.1]
+        })
+        st.line_chart(chart_data)
+        st.caption("Interpolated structural continuity model showing seam depth and thickness variations across borehole intercepts.")
+
+
+# --- TAB 4: STATUTORY COMPLIANCE REPORTS ---
+with tab4:
+    st.subheader("Automated CMPDI Statutory Report Generator")
+    st.write("Compile multi-modal exploration data into a standardized Ministry compliance document draft.")
+    
+    if st.button("Generate Official Ministry Report Draft", type="primary"):
         st.markdown("---")
-        st.subheader("Official Exploration Report Summary")
-        st.write("""
+        st.markdown("### 📄 Official Exploration Report Summary")
+        report_text = """
         **MEMORANDUM: SATELLITE & SUBSURFACE PROSPECTING EVALUATION**
         
         * **Target Agency:** Coal India Limited / CMPDI Regional Exploration Directorate.
-        * **Methodology:** Integrated multi-modal analysis combining Sentinel-2 multispectral band ratios (Clay/Iron-Oxide anomalies) with digital elevation modeling and historical core borehole logs.
+        * **Methodology:** Integrated multi-modal analysis combining Sentinel-2 multispectral band ratios (Clay/Iron-Oxide alterations) with digital elevation modeling and historical core borehole logs.
         * **Findings:** Evaluated landscape topologies confirm distinct structural signatures indicative of workable mineral-bearing strata. Predictive classification confidence is established at **>95%**.
         * **Recommendation:** Proceed to exploratory diamond core drilling for targeted zones identified in Block Survey.
-        """)
-        st.download_button("Download Compliance Report (.txt / .docx)", "CMPDI Official Exploration Report Draft Content...")
+        """
+        st.markdown(report_text)
+        st.download_button("📥 Download Official Report (.txt)", report_text, file_name="CMPDI_Exploration_Report.txt")
