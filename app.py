@@ -17,10 +17,7 @@ def check_authentication():
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
-        st.markdown("
-
-
-", unsafe_allow_html=True)
+        st.markdown(" ", unsafe_allow_html=True)
 col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
 with col_l2:
 st.markdown("### 🔒 CMPDI Secure Portal Login")
